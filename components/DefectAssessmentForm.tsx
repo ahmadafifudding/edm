@@ -14,10 +14,9 @@ export function DefectAssessmentForm() {
   const [isDownloading, setIsDownloading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
 
-  const downloadExcelTemplate = async () => {
+  const downloadExcelTemplate = async (filename: string) => {
     const excelUri = process.env.EXPO_PUBLIC_EXCEL_TEMPLATE_URI!
-    const fileUri =
-      FileSystem.documentDirectory + 'defect-assessment-template.xlsx'
+    const fileUri = FileSystem.documentDirectory + filename
     try {
       setIsDownloading(true)
       const { uri } = await FileSystem.downloadAsync(excelUri, fileUri)
@@ -99,10 +98,28 @@ export function DefectAssessmentForm() {
   return (
     <View style={{ rowGap: 16, marginTop: 32 }}>
       <Button
-        label='Download Template'
+        label='Download Brickwork Template'
         variant='secondary'
         isLoading={isDownloading}
-        onPress={downloadExcelTemplate}
+        onPress={() => downloadExcelTemplate('Brickwork.xlsx')}
+      />
+      <Button
+        label='Download C&S Template'
+        variant='secondary'
+        isLoading={isDownloading}
+        onPress={() => downloadExcelTemplate('C&S.xlsx')}
+      />
+      <Button
+        label='Download Skincoat Template'
+        variant='secondary'
+        isLoading={isDownloading}
+        onPress={() => downloadExcelTemplate('Skimcoat.xlsx')}
+      />
+      <Button
+        label='Download Tiling Template'
+        variant='secondary'
+        isLoading={isDownloading}
+        onPress={() => downloadExcelTemplate('Tiling.xlsx')}
       />
       <Button
         label='Upload File'
