@@ -47,12 +47,11 @@ export function DefectMonitoringImage({
     try {
       setUploading(true)
 
-      const result = await ImagePicker.launchCameraAsync({
+      const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: false,
+        allowsEditing: true,
         quality: 1,
       })
-
       if (result.canceled || !result.assets || result.assets.length === 0) {
         return
       }
