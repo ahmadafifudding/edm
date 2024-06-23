@@ -7,14 +7,18 @@ import { router } from 'expo-router'
 import * as Sharing from 'expo-sharing'
 import { useState } from 'react'
 import { Alert, View } from 'react-native'
+import { decode } from 'base64-arraybuffer'
+import XLSX from 'xlsx'
 
 export function DefectAssessmentForm() {
   const { session } = useAuth()
 
   const [isDownloading, setIsDownloading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [selectedButton, setSelectedButton] = useState<string>('')
 
   const downloadExcelTemplate = async (filename: string) => {
+    setSelectedButton(filename)
     const excelUri = process.env.EXPO_PUBLIC_EXCEL_TEMPLATE_URI!
     const fileUri = FileSystem.documentDirectory + filename
     try {
@@ -38,12 +42,14 @@ export function DefectAssessmentForm() {
   }
 
   const uploadFile = async () => {
+    const options: DocumentPicker.DocumentPickerOptions = {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      multiple: false,
+    }
+
     try {
       setIsUploading(true)
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        multiple: false,
-      })
+      const result = await DocumentPicker.getDocumentAsync(options)
 
       if (result.canceled || !result.assets || result.assets.length === 0) {
         return
@@ -55,23 +61,21 @@ export function DefectAssessmentForm() {
         throw new Error('No file uri')
       }
 
-      const fileBase64 = await FileSystem.readAsStringAsync(file.uri, {
+      const base64 = await FileSystem.readAsStringAsync(file.uri, {
         encoding: FileSystem.EncodingType.Base64,
       })
 
-      const fileExt = file.uri?.split('.').pop()?.toLowerCase() ?? 'xlsx'
-      const path = `${Date.now()}.${fileExt}`
-
-      const { data, error } = await supabase.storage
+      const { data: uploadFile, error } = await supabase.storage
         .from('defect-assessment')
-        .upload(path, fileBase64, {
+        .upload(file.name, decode(base64), {
           contentType:
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          upsert: false,
         })
 
-      if (data) {
+      if (uploadFile) {
         const { error } = await supabase.from('defect-assessment').insert({
-          excel_url: data?.path,
+          excel_url: uploadFile?.path,
           user_id: session?.user.id,
         })
 
@@ -100,25 +104,25 @@ export function DefectAssessmentForm() {
       <Button
         label='Download Brickwork Template'
         variant='secondary'
-        isLoading={isDownloading}
+        isLoading={isDownloading && selectedButton === 'Brickwork.xlsx'}
         onPress={() => downloadExcelTemplate('Brickwork.xlsx')}
       />
       <Button
         label='Download C&S Template'
         variant='secondary'
-        isLoading={isDownloading}
+        isLoading={isDownloading && selectedButton === 'C&S.xlsx'}
         onPress={() => downloadExcelTemplate('C&S.xlsx')}
       />
       <Button
         label='Download Skimcoat Template'
         variant='secondary'
-        isLoading={isDownloading}
+        isLoading={isDownloading && selectedButton === 'Skimcoat.xlsx'}
         onPress={() => downloadExcelTemplate('Skimcoat.xlsx')}
       />
       <Button
         label='Download Tiling Template'
         variant='secondary'
-        isLoading={isDownloading}
+        isLoading={isDownloading && selectedButton === 'Tiling.xlsx'}
         onPress={() => downloadExcelTemplate('Tiling.xlsx')}
       />
       <Button
