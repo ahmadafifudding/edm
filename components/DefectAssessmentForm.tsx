@@ -110,7 +110,7 @@ export function DefectAssessmentForm() {
         onPress={() => downloadExcelTemplate('C&S.xlsx')}
       />
       <Button
-        label='Download Skincoat Template'
+        label='Download Skimcoat Template'
         variant='secondary'
         isLoading={isDownloading}
         onPress={() => downloadExcelTemplate('Skimcoat.xlsx')}
